@@ -1,4 +1,4 @@
-//V2.1 Filescreen: Loading screen for files
+//V2.2.0 Filescreen: Loading screen for files
 
 
 /*
@@ -26,6 +26,16 @@ function _filescreen(userSettings) {
     //DOM-DEPENDENT INITIALIZATION
     this._init = function () {
         //inject new content
+        let sstyle=document.createElement("style");
+        sstyle.innerHTML=`.filescreen_recentDocDiv em{
+            padding: 3px;
+            font-style: normal;
+            font-family: sans-serif;
+            cursor: pointer;
+            color: red;
+        }`
+        document.head.appendChild(sstyle);
+
         me.baseDiv = document.createElement("div");
         me.baseDiv.style.cssText = `display: none;
         position: absolute;
@@ -52,8 +62,8 @@ function _filescreen(userSettings) {
         heading.innerText = me.settings.headprompt;
         innerDiv.appendChild(heading);
         //ddi of h2
-        let newDocHeading=document.createElement("h2");
-        newDocHeading.innerText="Make a new document";
+        let newDocHeading = document.createElement("h2");
+        newDocHeading.innerText = "Make a new document";
         innerDiv.appendChild(newDocHeading);
         me.newDocInput = document.createElement("input");
         me.newDocInput.placeholder = "Enter Name...";
@@ -78,19 +88,20 @@ function _filescreen(userSettings) {
             })
             innerDiv.appendChild(me.newOfflineButton);
         }
-        let recentHeading=document.createElement("h2");
-        recentHeading.innerText="Open a recent document:";
+        let recentHeading = document.createElement("h2");
+        recentHeading.innerText = "Open a recent document:";
         innerDiv.appendChild(recentHeading);
-        me.recentDocDiv=document.createElement("div");
-        me.recentDocDiv.innerHTML="<p>Nothing to show here :3</p>";
+        me.recentDocDiv = document.createElement("div");
+        me.recentDocDiv.classList.add("filescreen_recentDocDiv");
+        me.recentDocDiv.innerHTML = "<p>Nothing to show here :3</p>";
         innerDiv.appendChild(me.recentDocDiv);
         if (me.settings.tutorialEnabled) {
-            recentHeading=document.createElement("h2");
-            recentHeading.innerText="First time here? Check out our tutorial :)";
+            recentHeading = document.createElement("h2");
+            recentHeading.innerText = "First time here? Check out our tutorial :)";
             innerDiv.appendChild(recentHeading);
-            let newa=document.createElement("a");
-            newa.innerText="Click here!";
-            newa.href=me.settings.tutorialURL;
+            let newa = document.createElement("a");
+            newa.innerText = "Click here!";
+            newa.href = me.settings.tutorialURL;
             innerDiv.appendChild(newa);
         }
         document.body.appendChild(me.baseDiv);
@@ -106,25 +117,34 @@ function _filescreen(userSettings) {
         let newInnerHTML = "";
         if (recents) {
             for (i = 0; i < recents.length; i++) {
-                newInnerHTML += `<p><a href=` + recents[i] + `>` + recents[i] + `</a></p>`;
+                newInnerHTML += `<p><a href=` + recents[i] + `>` + recents[i] + `</a><em>x</em></p>`;
             }
             me.recentDocDiv.innerHTML = newInnerHTML;
         }
         me.baseDiv.style.display = "block";
+        //register delegated event handler for the em's.
+        me.recentDocDiv.addEventListener("click", (e) => {
+            if (e.target.tagName.toLowerCase()=="em"){
+                let toRemove=e.target.parentElement.children[0].innerHTML;
+                recents.splice(recents.indexOf(toRemove),1);
+                localStorage.setItem("__" + me.settings.savePrefix + "_recent_docs",JSON.stringify(recents));
+                e.target.parentElement.remove();
+            }
+        });
     }
 
-    this.saveRecentDocument = function (id, offline=true) {
-        let url="?"+me.settings.documentQueryKeyword+"="+id+"&";
-        if(offline){
-            url+=me.settings.offlineQueryParam;
-        }else{
-            url+=me.settings.onlineQueryParam;
+    this.saveRecentDocument = function (id, offline = true) {
+        let url = "?" + me.settings.documentQueryKeyword + "=" + id + "&";
+        if (offline) {
+            url += me.settings.offlineQueryParam;
+        } else {
+            url += me.settings.onlineQueryParam;
         }
         let recents = JSON.parse(localStorage.getItem("__" + me.settings.savePrefix + "_recent_docs"));
         if (!recents) recents = [];
         let seenbefore = false;
         recents.forEach((v) => {
-            if (v==url) {
+            if (v == url) {
                 seenbefore = true;
             }
         });

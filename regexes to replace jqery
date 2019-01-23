@@ -1,0 +1,2 @@
+JQInit\((.+)\)
+if (document.readyState != "loading") $1(); else document.addEventListener("DOMContentLoaded", $1);

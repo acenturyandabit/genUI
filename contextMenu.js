@@ -1,11 +1,18 @@
-//V1.0. Context menu manager.
+//V2.0 Context menu manager, now JQUERY FREE yayayayay
+//STATUS:
+//SAMPLE CODE: NOT READY
+//DEFAULTARGS: NOT READY
+//FUNCTION INSTEAD OF OBJECT: NOT READY
+//JQINIT: NO
+//REMOVE JQUERY DEPENDENCY: NO
 
 contextMenuManager={
     registerContextMenu:(menu,element,delegate, contextmenuEventPassThrough)=>{
         let thisCTXM=document.createElement("div");
-        $(thisCTXM).append(menu);
+        thisCTXM.appendChild(menu);
         thisCTXM.classList.add("contextMenu");
-        $("body").append(thisCTXM);
+        document.body.appendChild(thisCTXM);
+        thisCTXM.style.display='none';
         let f=function(e){
             //show the context menu
             thisCTXM.style.left = e.clientX;// - element.offsetLeft;
@@ -15,17 +22,28 @@ contextMenuManager={
             if (contextmenuEventPassThrough)contextmenuEventPassThrough(e);
         };
         if (delegate){ //it's a class
-            $(element).on("contextmenu",delegate, f);
+            element.addEventListener("contextmenu", function(e){
+                let current=e.target;
+                while (current!=element){
+                    if (current.matches(delegate)){
+                        f(e);
+                        return;
+                    }else{
+                        current=current.parentElement;
+                    }
+                }
+            })
         }else{
-            $(element).on("contextmenu",f);
+            element.addEventListener("contextmenu", f);
         }
-        $("body").on("click",(e)=>{
-            if (!$(e.target).is("li")) $(thisCTXM).hide();
+        document.body.addEventListener("click",(e)=>{
+            if (!(e.target.matches("li"))) thisCTXM.style.display="none";
         })
     },
     init: function(){
         //add styling
-        $("head").append(`<style>
+        let s = document.createElement("style");
+        s.innerHTML=`
         .contextMenu {
             list-style: none;
             background: white;
@@ -37,9 +55,8 @@ contextMenuManager={
         .contextMenu li {
             padding: 10px;
             display: block;
-        }
-        
-        </style>`);
+        }`
+        document.head.appendChild(s);
     }
 }
 contextMenuManager.init();
