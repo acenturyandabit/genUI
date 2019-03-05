@@ -1,0 +1,52 @@
+<html>
+
+<head>
+    <script src="../scriptassert.js"></script>
+    <script>
+        //multiple concurrent load
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"]
+        ], () => {
+            $(alert("hi!"));
+        });
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"]
+        ], () => {
+            $(alert("hi!"));
+        });
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"]
+        ], () => {
+            $(alert("hi!"));
+        });
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"]
+        ], () => {
+            $(alert("hi!"));
+        });
+
+        //multiple script load
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"],
+            ["localforage", "../../Third party/localforage.min.js"],
+        ], () => {
+            $(alert("localforage!!"));
+        });
+        //derp around
+        assert([
+            ["jQuery", "../../Third party/jquery.min.js"],
+            ["jQuery", "../../Third party/jquery.min.js"],
+            ["jQuery", "../../Third party/jquery.min.js"],
+            ["jQuery", "../../Third party/jquery.min.js"],
+            ["jQuery", "../../Third party/jquery.min.js"]
+        ], () => {
+            $(alert("spammy!"));
+        });
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+.marquee{
+    overflow:hidden;
+    display:flex;
+    
+}
+.marquee>div{
+    animation:scroll 10s linear infinite;
+    position:relative;
+}
+
+.marquee>div:hover{
+    animation-play-state: paused
+}
+
+.marquee>div>*{
+    float:left;
+}
+
+/* Make it move */
+@keyframes scroll{
+0% {left:800px;}
+100% {left:-800px;}
+}

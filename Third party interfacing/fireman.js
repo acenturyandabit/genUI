@@ -37,7 +37,7 @@ function _fireman(userSettings) {
     //function for the tutorial.
     tutorialFunction: (doc, id) => {},
 
-    //firebase configuration
+    //firebase configuration - chuck your own one here
     config: {},
     //doc to generate to be sent to registerFirebaseDoc
     generateDoc: function(db, docName) {

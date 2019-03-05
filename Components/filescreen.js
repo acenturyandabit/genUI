@@ -1,10 +1,18 @@
 //V2.2.0 Filescreen: Loading screen for files
 
 
+
 /*
 TODO:
 Better formatting for recent files using split.
 
+*/
+
+
+/*
+Methods:
+showSplash();
+saveRecentDocument(id,offline=true);
 */
 
 function _filescreen(userSettings) {

@@ -1,18 +1,22 @@
-//V2.0 Context menu manager, now JQUERY FREE yayayayay
-//STATUS:
+//V2.0.1 Context menu manager, fixed Z index issues
+//TODO:
 //SAMPLE CODE: NOT READY
 //DEFAULTARGS: NOT READY
 //FUNCTION INSTEAD OF OBJECT: NOT READY
-//JQINIT: NO
-//REMOVE JQUERY DEPENDENCY: NO
 
 contextMenuManager={
     registerContextMenu:(menu,element,delegate, contextmenuEventPassThrough)=>{
         let thisCTXM=document.createElement("div");
-        thisCTXM.appendChild(menu);
+        if (typeof menu =="string"){
+            thisCTXM.innerHTML=menu;
+        }else{
+            thisCTXM.appendChild(menu);
+        }
+        
         thisCTXM.classList.add("contextMenu");
         document.body.appendChild(thisCTXM);
         thisCTXM.style.display='none';
+        thisCTXM.style.zIndex="100";
         let f=function(e){
             //show the context menu
             thisCTXM.style.left = e.clientX;// - element.offsetLeft;
