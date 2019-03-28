@@ -16,41 +16,9 @@ Place those scripts in the 'urlsToCache' property and you'll be ready to go.
 */
 let serviceWorkerSettings = {
   urlsToCache: [
-    "index.html",
-    "",
-    "3pt/localforage.min.js",
-    "3pt/firebase-app.js",
-    "3pt/firebase-firestore.js",
-    "genui/useful.js",
-    "genui/bind.js",
-    "genui/filescreen.js",
-    "genui/queryLoader.js",
-    "genui/scriptassert.js",
-    "genui/eventAPI.js",
-    "genui/topbar.js",
-    "rect.js",
-    "operator.js",
-    "core.js",
-    "genui/dialog.js",
-    "operators/opSelect.js",
-    "operators/itemList.js",
-    "operators/descbox.js",
-    "operators/calendar.js",
-    "operators/iframe.js",
-    "operators/synergist.js",
-    "operators/subframe.js",
-    "operators/httree.js",
-    "genui/dateparser.js",
-    "3pt/jquery.min.js",
-    "3pt/x-frame-bypass.js",
-    "genui/contextMenu.js",
-    "3pt/quill.min.js",
-    "3pt/svg.min.js",
-    "3pt/moment.min.js",
-    "3pt/fullcalendar.min.js",
-    "manifest.json"
+    "index.html"
   ],
-  CACHE_NAME: "version 7x",
+  CACHE_NAME: "Version 1",
   RETRIEVAL_METHOD: "cacheReupdate", // cacheReupdate, networkOnly, cacheOnly
   debug: true
 };
