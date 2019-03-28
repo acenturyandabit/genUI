@@ -1,3 +1,60 @@
+//v0.2. 
+
+/*
+How to use:
+- Instantiate: 
+var t = new _tutorial({
+    root: rootElement,
+    indicateRemaining: true // whether or not to list the number of steps remaining
+    shader: true, // whether or not to apply a shader div over the rest of the document.
+});
+
+- Push steps:
+var id=t.push({
+    id: 'uniqueID' (optional),
+    el: element,
+    text: 'hello world!',
+    to: 'nextID', OR
+    to: [{button:'buttonText',id:'uniqueID'},{button:'buttonText',id:'uniqueID'}],
+    location: 'above' OR 'below' OR 'left' OR 'right',
+    arrowCentering: 'center' OR 'start' OR 'end'
+})
+
+- Run the tutorial!
+t.start(uuid);
+
+*/
+
+function _tutorial(options){
+    this.guid=function(count = 6) {
+        let pool = "1234567890qwertyuiopasdfghjklzxcvbnm";
+        tguid = "";
+        for (i = 0; i < count; i++) tguid += pool[Math.floor(Math.random() * pool.length)];
+        return tguid;
+    }
+    this.items={};
+    this.
+    this.push=function(item){
+        //if no id then generate a uuid? 
+        if (!item.id){
+            item.id=this.guid();
+        }
+        this.items[item.id]=item;
+        return item.id
+    }
+    this.start=function(id){
+
+    }
+}
+
+
+
+
+
+
+
+
+
 // V0.1. Still dependent heavily on jquery (soz)... Will attempt to download jQuery from CDN if it does not have access to jQuery. At least there's that.
 //With JQinit V2.2 to fill said dependency.
 

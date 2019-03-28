@@ -1,3 +1,4 @@
+//v4.0: added capacitor.
 function isPhone() {
     var mobiles = [
         "Android",
@@ -6,16 +7,16 @@ function isPhone() {
         "Linux armv7l",
         "Linux aarch64"
     ];
-    if (mobiles.includes(navigator.platform)) {
+    if (mobiles.includes(navigator.platform) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         return true;
     }
     return false;
 }
 
-function guid() {
+function guid(count = 6) {
     let pool = "1234567890qwertyuiopasdfghjklzxcvbnm";
     tguid = "";
-    for (i = 0; i < 4; i++) tguid += pool[Math.floor(Math.random() * pool.length)];
+    for (i = 0; i < count; i++) tguid += pool[Math.floor(Math.random() * pool.length)];
     return tguid;
 }
 
@@ -45,4 +46,10 @@ function randcol() {
     }
     output += "00";
     return output;
+}
+
+function documentReady(f) {
+    if (document.readyState == 'loading') {
+        document.addEventListener("DOMContentLoaded", f);
+    } else f();
 }
