@@ -1,6 +1,8 @@
 # genUI
 genUI: Javascript UI library focused on modularity and simplicity.
 
+If you're here from my LinkedIn post, pwa.js is located in Javascript/. The documentation is in the file itself so you can get started straight away!
+
 ## Purpose
 With most UI libraries out there, it's all or nothing: either stick to their themes, styling and everything, or make your own.
 
