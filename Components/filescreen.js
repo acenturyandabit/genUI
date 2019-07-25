@@ -1,6 +1,5 @@
-//V2.2.0 Filescreen: Loading screen for files
-
-
+//V2.3.0 Filescreen: Loading screen for files
+//Now with better mobile support!
 
 /*
 TODO:
@@ -8,114 +7,154 @@ Better formatting for recent files using split.
 
 */
 
-
 /*
+How to use:
+let f = new _filescreen({
+    headprompt: STRING OR DOM_ELEMENT
+    formats:[
+        {
+            prompt: STRING
+            queryParam: STRING (appended to the URL if the user decides to load that URL)
+        }
+    ]
+})
+
 Methods:
-showSplash();
-saveRecentDocument(id,offline=true);
+f.showSplash();
+f.saveRecentDocument(id,url,displayName);
+
+Properties:
+Use f.baseDiv to access the underlying div, for any event handlers you may need.
 */
+
+
 
 function _filescreen(userSettings) {
     this.settings = {
         headprompt: "Welcome!",
-        onlineEnabled: true,
-        onlineQueryParam: "",
-        offlineEnabled: true,
-        offlineQueryParam: "offline",
+        formats: [{
+            prompt: "Make a new document"
+        }],
         documentQueryKeyword: "doc",
         tutorialEnabled: true,
         tutorialURL: "?tute",
-        savePrefix: ""
+        savePrefix: "",
     };
     Object.assign(this.settings, userSettings);
     let me = this;
     //NON-DOM-DEPENDENT INITALISATION
-
-    //DOM-DEPENDENT INITIALIZATION
-    this._init = function () {
-        //inject new content
-        let sstyle=document.createElement("style");
-        sstyle.innerHTML=`.filescreen_recentDocDiv em{
-            padding: 3px;
-            font-style: normal;
-            font-family: sans-serif;
-            cursor: pointer;
-            color: red;
-        }`
-        document.head.appendChild(sstyle);
-
-        me.baseDiv = document.createElement("div");
-        me.baseDiv.style.cssText = `display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width:100%;
-        height:100%;
-        background-color: rgba(0,0,0,0.5);
-        z-index:100;`;
-        let outerDiv;
-        outerDiv = document.createElement("div");
-        outerDiv.style.cssText = "display: table; position: absolute; top: 0; left: 0; height: 100%; width: 100%;";
-        me.baseDiv.appendChild(outerDiv);
-        let midDiv;
-        midDiv = document.createElement("div");
-        midDiv.style.cssText = "display: table-cell; vertical-align: middle;";
-        outerDiv.appendChild(midDiv);
-        let innerDiv;
-        innerDiv = document.createElement("div");
-        innerDiv.style.cssText = "position:relative; display: flex; flex-direction: column; margin: auto; min-height: 60vh; width: 40vw; background-color: white; border-radius: 30px; padding: 30px;";
-        midDiv.appendChild(innerDiv);
-        let heading;
-        heading = document.createElement("h1");
+    this.baseDiv = document.createElement("div");
+    let sstyle = document.createElement("style");
+    sstyle.innerHTML = `.filescreen_recentDocDiv em{
+        padding: 3px;
+        font-style: normal;
+        font-family: sans-serif;
+        cursor: pointer;
+        color: red;
+    }
+    .filescreen_recentDocDiv{
+        overflow-y: auto;
+        max-height: 40vh;
+    }
+    `
+    this.baseDiv.appendChild(sstyle);
+    me.baseDiv.style.cssText = `display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width:100%;
+    height:100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index:100;`;
+    let outerDiv;
+    outerDiv = document.createElement("div");
+    outerDiv.style.cssText = "display: table; position: absolute; top: 0; left: 0; height: 100%; width: 100%;";
+    me.baseDiv.appendChild(outerDiv);
+    let midDiv;
+    midDiv = document.createElement("div");
+    midDiv.style.cssText = "display: table-cell; vertical-align: middle;";
+    outerDiv.appendChild(midDiv);
+    let innerDiv = document.createElement("div");
+    innerDiv.id="__filecreen_inner_div";
+    let style = document.createElement("style");
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        style.innerHTML=`
+            #__filecreen_inner_div{
+                position:relative; display: flex; flex-direction: column; margin: auto; min-height: 60vh; max-height: 80vh; width: 80vw; background-color: white; border-radius: 30px; padding: 30px;
+            }
+            #__filecreen_inner_div>p{
+                display: block;
+            }
+        `;
+        innerDiv.style.cssText = "";
+    } else {
+        style.innerHTML=`
+            #__filecreen_inner_div{
+                position:relative; display: flex; flex-direction: column; margin: auto; min-height: 60vh; max-height: 80vh; width: 80vw; background-color: white; border-radius: 30px; padding: 30px;
+            }
+        `;
+    }
+    midDiv.appendChild(innerDiv);
+    midDiv.appendChild(style);
+    if ((typeof me.settings.headprompt).toLowerCase() == "string") {
+        let heading = document.createElement("h1");
         heading.innerText = me.settings.headprompt;
         innerDiv.appendChild(heading);
-        //ddi of h2
+    } else {
+        innerDiv.appendChild(me.settings.headprompt);
+    }
+    //ddi of h2
+    if (me.settings.formats) {
         let newDocHeading = document.createElement("h2");
         newDocHeading.innerText = "Make a new document";
         innerDiv.appendChild(newDocHeading);
         me.newDocInput = document.createElement("input");
         me.newDocInput.placeholder = "Enter Name...";
         innerDiv.appendChild(me.newDocInput);
-        if (me.settings.onlineEnabled) {
-            me.newOnlineButton = document.createElement("button");
-            me.newOnlineButton.innerText = "Make an online (shared) document";
-            me.newOnlineButton.addEventListener("click", () => {
+        //create a button for each format specifier
+        for (let i = 0; i < me.settings.formats.length; i++) {
+            let b = document.createElement("button");
+            b.innerText = me.settings.formats[i].prompt;
+            b.dataset.index = i;
+            //if (me.settings.formats[i].queryParam) b.dataset.queryParam = me.settings.formats[i].queryParam;
+            b.addEventListener("click", (e) => {
                 if (me.newDocInput.value.length) {
-                    window.location.href = window.location.href.split("?")[0] + "?" + me.settings.documentQueryKeyword + "=" + me.newDocInput.value + "&" + me.settings.onlineQueryParam;
+                    let url = new URL(window.location);
+                    let totalString = "?" + me.settings.documentQueryKeyword + "=" + me.newDocInput.value;
+                    let index = Number(e.target.dataset.index);
+                    if (me.settings.formats[i].queryParam) {
+                        if (typeof me.settings.formats[i].queryParam == "string") {
+                            totalString += "&" + me.settings.formats[i].queryParam;
+                        } else totalString += "&" + me.settings.formats[i].queryParam(); //string or function
+                    }
+                    url.search = totalString;
+                    window.location.href = url.toString();
                 }
             })
-            innerDiv.appendChild(me.newOnlineButton);
+            innerDiv.appendChild(b);
         }
-        if (me.settings.offlineEnabled) {
-            me.newOfflineButton = document.createElement("button");
-            me.newOfflineButton.innerText = "Make an offline (local) document";
-            me.newOfflineButton.addEventListener("click", () => {
-                if (me.newDocInput.value.length) {
-                    window.location.href = window.location.href.split("?")[0] + "?" + me.settings.documentQueryKeyword + "=" + me.newDocInput.value + "&" + me.settings.offlineQueryParam;
-                }
-            })
-            innerDiv.appendChild(me.newOfflineButton);
-        }
-        let recentHeading = document.createElement("h2");
-        recentHeading.innerText = "Open a recent document:";
-        innerDiv.appendChild(recentHeading);
-        me.recentDocDiv = document.createElement("div");
-        me.recentDocDiv.classList.add("filescreen_recentDocDiv");
-        me.recentDocDiv.innerHTML = "<p>Nothing to show here :3</p>";
-        innerDiv.appendChild(me.recentDocDiv);
-        if (me.settings.tutorialEnabled) {
-            recentHeading = document.createElement("h2");
-            recentHeading.innerText = "First time here? Check out our tutorial :)";
-            innerDiv.appendChild(recentHeading);
-            let newa = document.createElement("a");
-            newa.innerText = "Click here!";
-            newa.href = me.settings.tutorialURL;
-            innerDiv.appendChild(newa);
-        }
-        document.body.appendChild(me.baseDiv);
     }
-    if (document.readyState != "loading") this._init();
-    else document.addEventListener("DOMContentLoaded", () => this._init());
+    let recentHeading = document.createElement("h2");
+    recentHeading.innerText = "Or, open a recent document:";
+    innerDiv.appendChild(recentHeading);
+    me.recentDocDiv = document.createElement("div");
+    me.recentDocDiv.classList.add("filescreen_recentDocDiv");
+    me.recentDocDiv.innerHTML = "<p>Nothing to show here :3</p>";
+    innerDiv.appendChild(me.recentDocDiv);
+    if (me.settings.tutorialEnabled) {
+        recentHeading = document.createElement("h2");
+        recentHeading.innerText = "First time here? Check out our tutorial :)";
+        innerDiv.appendChild(recentHeading);
+        let newa = document.createElement("a");
+        newa.innerText = "Click here!";
+        newa.href = me.settings.tutorialURL;
+        innerDiv.appendChild(newa);
+    }
+    //DOM-DEPENDENT INITIALIZATION
+    if (document.readyState != "loading") document.body.appendChild(me.baseDiv);
+    else document.addEventListener("DOMContentLoaded", () => {
+        document.body.appendChild(me.baseDiv);
+    });
 
 
     ///functions to call
@@ -124,41 +163,31 @@ function _filescreen(userSettings) {
         let recents = JSON.parse(localStorage.getItem("__" + me.settings.savePrefix + "_recent_docs"));
         let newInnerHTML = "";
         if (recents) {
-            for (i = 0; i < recents.length; i++) {
-                newInnerHTML += `<p><a href=` + recents[i] + `>` + recents[i] + `</a><em>x</em></p>`;
+            for (let i in recents) {
+                newInnerHTML += `<p><a href=` + recents[i].url + ` data-id="${i}">` + recents[i].displayName + `</a><em>x</em></p>`;
             }
             me.recentDocDiv.innerHTML = newInnerHTML;
         }
         me.baseDiv.style.display = "block";
         //register delegated event handler for the em's.
         me.recentDocDiv.addEventListener("click", (e) => {
-            if (e.target.tagName.toLowerCase()=="em"){
-                let toRemove=e.target.parentElement.children[0].innerHTML;
-                recents.splice(recents.indexOf(toRemove),1);
-                localStorage.setItem("__" + me.settings.savePrefix + "_recent_docs",JSON.stringify(recents));
+            if (e.target.tagName.toLowerCase() == "em") {
+                let toRemove = e.target.parentElement.children[0].dataset.id;
+                delete recents[toRemove];
+                localStorage.setItem("__" + me.settings.savePrefix + "_recent_docs", JSON.stringify(recents));
                 e.target.parentElement.remove();
             }
         });
     }
 
-    this.saveRecentDocument = function (id, offline = true) {
-        let url = "?" + me.settings.documentQueryKeyword + "=" + id + "&";
-        if (offline) {
-            url += me.settings.offlineQueryParam;
-        } else {
-            url += me.settings.onlineQueryParam;
-        }
+    this.saveRecentDocument = function (id, url, displayName) {
+        if (!url) url = window.location.href;
         let recents = JSON.parse(localStorage.getItem("__" + me.settings.savePrefix + "_recent_docs"));
-        if (!recents) recents = [];
-        let seenbefore = false;
-        recents.forEach((v) => {
-            if (v == url) {
-                seenbefore = true;
-            }
-        });
-        if (!seenbefore) {
-            recents.push(url);
-            localStorage.setItem("__" + me.settings.savePrefix + "_recent_docs", JSON.stringify(recents));
-        }
+        if (!recents || recents.constructor.name != "Object") recents = {}; //upgrade older versions
+        recents[id] = {
+            url: url,
+            displayName: displayName || id
+        };
+        localStorage.setItem("__" + me.settings.savePrefix + "_recent_docs", JSON.stringify(recents));
     }
 }

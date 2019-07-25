@@ -1,66 +1,132 @@
-//V2.0.1 Context menu manager, fixed Z index issues
-//TODO:
-//SAMPLE CODE: NOT READY
-//DEFAULTARGS: NOT READY
-//FUNCTION INSTEAD OF OBJECT: NOT READY
+//V2.0. Context menu manager; now JQuery indpenedent.
+/*
+How to use:
 
-contextMenuManager={
-    registerContextMenu:(menu,element,delegate, contextmenuEventPassThrough)=>{
-        let thisCTXM=document.createElement("div");
-        if (typeof menu =="string"){
-            thisCTXM.innerHTML=menu;
-        }else{
-            thisCTXM.appendChild(menu);
-        }
-        
+1. instantiate
+let c = new contextMenuManager(root_element);
+
+2.1 (optional). create a filter - 
+function filter(e){
+    //e is a normal javascript contextmenu event.
+
+    //return true if you want the menu to be shown
+    return true;
+    //false otherwise
+}
+
+2.2. Layout the HTML
+let html=`
+        <li class="option1">Option1</li>
+        <li class="option2">Option2</li>`;
+
+For submenus:
+    let html=`
+        <li class="option1">Option1
+            <ul>
+                <li>Suboption 1</li>
+                <li>Suboption 2</li>
+            </ul>
+        </li>
+        <li class="option2">Option2</li>`;
+3. Add a context menu!
+menu=c.registerContextMenu(html,context_element, '.delegate_class'(optional), filter)
+
+4.1 Add event hanlders when individual items are clicked.
+menu.querySelector(".option1").addEventListener("click",function(){
+    
+    4.2 Make sure you close the context menu when you want it closed!
+    menu.style.display="none";
+})
+*/
+function _contextMenuManager(root) {
+    this.registerContextMenu = function (menu, element, delegate, contextmenuEventPassThrough) {
+        let thisCTXM = document.createElement("div");
+        thisCTXM.innerHTML = menu;
+        thisCTXM.style.cssText = "display:none;"
         thisCTXM.classList.add("contextMenu");
-        document.body.appendChild(thisCTXM);
-        thisCTXM.style.display='none';
-        thisCTXM.style.zIndex="100";
-        let f=function(e){
-            //show the context menu
-            thisCTXM.style.left = e.clientX;// - element.offsetLeft;
-            thisCTXM.style.top = e.clientY;// - element.offsetTop;
-            thisCTXM.style.display="block";
-            e.preventDefault();
-            if (contextmenuEventPassThrough)contextmenuEventPassThrough(e);
-        };
-        if (delegate){ //it's a class
-            element.addEventListener("contextmenu", function(e){
-                let current=e.target;
-                while (current!=element){
-                    if (current.matches(delegate)){
-                        f(e);
-                        return;
-                    }else{
-                        current=current.parentElement;
-                    }
-                }
-            })
-        }else{
-            element.addEventListener("contextmenu", f);
+        let re = element;
+        while (re.parentElement) re = re.parentElement;
+        re.appendChild(thisCTXM);
+
+        function intellishow(e) {
+            let mbr = thisCTXM.getBoundingClientRect();
+            let pbr = thisCTXM.parentElement.getBoundingClientRect();
+            let _left = e.pageX - pbr.x;
+            let _top = e.pageY - pbr.y;
+            //adjust for out of the page scenarios.
+            /*if (((pbr.x+pbr.w)-(mbr.x+mbr.w))>0)_left =_left-((pbr.x+pbr.w)-(mbr.x+mbr.w));
+            if (((pbr.y+pbr.h)-(mbr.y+mbr.h))>0)_top =_top-((pbr.y+pbr.h)-(mbr.y+mbr.h));
+            if (mbr.x-pbr.x>0)_left =_left-(mbr.x-pbr.x);
+            if (mbr.y-pbr.y>0)_left =_left-(mbr.y-pbr.y);
+            */
+            //set
+            thisCTXM.style.top = _top;
+            thisCTXM.style.left = _left;
+            thisCTXM.style.display = "block";
         }
-        document.body.addEventListener("click",(e)=>{
-            if (!(e.target.matches("li"))) thisCTXM.style.display="none";
+        let f = function (e) {
+            //show the context menu
+            e.preventDefault();
+            if (contextmenuEventPassThrough) {
+                if (contextmenuEventPassThrough(e)) {
+                    intellishow(e);
+                }
+            } else {
+                intellishow(e);
+            }
+        };
+        element.addEventListener("contextmenu", function (e) {
+            if (delegate) {
+                if (e.target.matches(delegate) || e.target.matches(delegate + " *")) f(e);
+            } else f(e);
         })
-    },
-    init: function(){
-        //add styling
+
+        function hidemenu(e) {
+            let rt = thisCTXM.getRootNode();
+            try {
+                let el = rt.elementFromPoint(e.clientX, e.clientY);
+                if (!thisCTXM.contains(el)) thisCTXM.style.display = "none";
+            } catch (e) {
+                console.log(e);
+                document.removeEventListener("click", hidemenu);
+            }
+        }
+
+        document.addEventListener("click", hidemenu);
+
+        //add styling along with element for safety 
         let s = document.createElement("style");
-        s.innerHTML=`
-        .contextMenu {
+        s.innerHTML = `.contextMenu {
             list-style: none;
             background: white;
             box-shadow: 0px 0px 5px black;
             user-select: none;
             position: absolute;
+            z-index:1000;
         }
-        
         .contextMenu li {
-            padding: 10px;
+            position:relative;
+            padding: 2px;
             display: block;
-        }`
-        document.head.appendChild(s);
+        }
+        .contextMenu li:hover {
+            background:pink;
+        }
+        .contextMenu li .submenu {
+            display:none;
+        }
+        .contextMenu li:hover .submenu {
+            display: block;
+            position: absolute;
+            left: 100%;
+            margin: 0;
+            top: 0;
+            padding: 0;
+            background: white;
+        }
+        `;
+        thisCTXM.appendChild(s);
+        return thisCTXM;
     }
 }
-contextMenuManager.init();
+//contextMenuManager = new _contextMenuManager(document.body);
